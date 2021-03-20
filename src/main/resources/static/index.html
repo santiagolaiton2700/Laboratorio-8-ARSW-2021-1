@@ -33,7 +33,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <body onload="app.init()">
         X:<input id="x" type="number"/>
         Y:<input id="y" type="number"/>        
-        <button onclick="app.publishPoint($('#x').val(),$('#y').val())">Send point</button>
-        <canvas id="canvas" width="800" height="600"></canvas>
+        <button id="sendPoint" onclick="app.publishPoint($('#x').val(),$('#y').val())">Send point</button>        
+        <canvas id="canvas" width="800" height="600"></canvas><br>
+        Drawing number:<br>
+        <input id="idNumber" type="number"/>
+        <button id="sendIdNumber" onclick="app.subscribeToPoint($('#idNumber').val())">Send number</button>
     </body>
 </html>
