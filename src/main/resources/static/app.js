@@ -17,7 +17,7 @@ var app = (function () {
         
         
             mouseInteractionCanvas.canvas.addEventListener('click', function(event){
-                console.log(subscribed);
+                
                 if (subscribed){
                     var mouseX = event.clientX - mouseInteractionCanvas.canvas.offsetLeft;
                     var mouseY = event.clientY - mouseInteractionCanvas.canvas.offsetTop;
@@ -52,8 +52,7 @@ var app = (function () {
     var getMousePosition = function (evt) {
         canvas = document.getElementById("canvas");
         var rect = canvas.getBoundingClientRect();
-        console.log(evt.clientX - rect.left);
-        console.log(evt.clientY - rect.top);
+
         return {
             x: evt.clientX - rect.left,
             y: evt.clientY - rect.top
@@ -61,25 +60,40 @@ var app = (function () {
     };
 
 
-    var connectAndSubscribe = function () {
-        console.info('Connecting to WS...');
+    // var connectAndSubscribe = function () {
+    //     console.info('Connecting to WS...');
         
-        var socket = new SockJS('/stompendpoint');        
-        stompClient = Stomp.over(socket);        
+    //     var socket = new SockJS('/stompendpoint');        
+    //     stompClient = Stomp.over(socket);        
         
-        stompClient.connect({}, function (frame) {
+    //     stompClient.connect({}, function (frame) {
             
-            console.log('Connected: ' + frame);
+    //         console.log('Connected: ' + frame);
             
-            stompClient.subscribe('/topic/newpoint', function (message) {
-                var messagePoint=JSON.parse(message.body);
-                // alert("Punto X: "+objectJS.x+" Punto T: "+objectJS.y); //first commit
-                addPointToCanvas(messagePoint);
+    //         stompClient.subscribe('/topic/newpoint', function (message) {
+    //             var messagePoint=JSON.parse(message.body);
+    //             // alert("Punto X: "+objectJS.x+" Punto T: "+objectJS.y); //first commit
+    //             addPointToCanvas(messagePoint);
 
-            });
-        });
+    //         });
+    //     });
 
-    };
+    // };
+
+    var addPolygonToCanvas = function (messagePolygon){
+        
+        var canvas = document.getElementById("canvas");
+        var context = canvas.getContext("2d");
+        context.fillStyle = "cyan";
+        context.beginPath();
+        context.moveTo(messagePolygon[0].x, messagePolygon[0].y);
+
+        for(var i = 1; i < messagePolygon.length; i++){
+            context.lineTo(messagePolygon[i].x, messagePolygon[i].y);
+        }
+        context.closePath();
+        context.fill();
+    }
 
     var subscribeToPoint = function(idNumber){
         if (idNumber!==null){
@@ -95,12 +109,19 @@ var app = (function () {
                 stompClient = Stomp.over(socket);        
                 stompClient.connect({}, function (frame) {
                     console.log('Connected: ' + frame);
+                    // stompClient.subscribe('/topic/newpoint.'+idNumber, function (message) {
                     stompClient.subscribe('/topic/newpoint.'+idNumber, function (message) {
+
                         var messagePoint=JSON.parse(message.body);
                         // alert("Punto X: "+objectJS.x+" Punto T: "+objectJS.y); //first commit
 
                         addPointToCanvas(messagePoint);
         
+                    });
+
+                    stompClient.subscribe('/topic/newpolygon.'+idNumber, function (message) {
+                        var messagePolygon=JSON.parse(message.body);
+                        addPolygonToCanvas(messagePolygon.points);
                     });
                 }); 
         }
@@ -114,7 +135,8 @@ var app = (function () {
 
         //publicar el evento
         
-        stompClient.send("/topic/newpoint."+subscribeNumber,{},JSON.stringify(pt));
+        // stompClient.send("/topic/newpoint."+subscribeNumber,{},JSON.stringify(pt));
+        stompClient.send("/app/newpoint."+subscribeNumber,{},JSON.stringify(pt));
             
  
     }
